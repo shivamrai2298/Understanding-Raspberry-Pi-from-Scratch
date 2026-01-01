@@ -2,17 +2,11 @@
 # Experiment Title:
 # Blinking an LED using Raspberry Pi and Python
 #
-# File Name:
-# led_blink_with_questions.py
 #
 # ====================================================
 # OBJECTIVE:
 # To blink an LED connected to Raspberry Pi using
 # Python programming and GPIO pins.
-#
-# ====================================================
-# THEORY / VIVA QUESTIONS WITH ANSWERS
-# ====================================================
 
 # Q1. What is Raspberry Pi?
 # Ans:
