@@ -1,67 +1,46 @@
-# ---------------------------------------------------------
-# Experiment: 8x8 LED Matrix using MAX7219 and Raspberry Pi
-# Interface: SPI
-# ---------------------------------------------------------
-
-"""
-==============================
-VIVA / THEORY QUESTIONS
-==============================
-
-Q1. What is an 8x8 LED matrix?
-A: A display consisting of 64 LEDs arranged in rows and columns.
-
-Q2. Why do we use MAX7219?
-A: Raspberry Pi GPIO cannot handle 64 LEDs.
-   MAX7219 handles current, multiplexing, and SPI communication.
-
-Q3. What is multiplexing?
-A: Turning rows ON and OFF very fast to display patterns.
-
-Q4. Why SPI is used?
-A: SPI allows fast communication using fewer pins.
-
-Q5. Can we connect LED matrix directly to GPIO?
-A: No, it will damage GPIO due to high current draw.
-
-==============================
-"""
-
-from luma.core.interface.serial import spi, noop
-from luma.core.render import canvas
-from luma.led_matrix.device import max7219
+import spidev
 import time
 
-# SPI configuration
-serial = spi(port=0, device=0, gpio=noop())
+# ---------------- SPI SETUP ----------------
+spi = spidev.SpiDev()
+spi.open(0, 0)                 # Bus 0, CE0
+spi.max_speed_hz = 1000000
+spi.mode = 0
 
-# MAX7219 device setup
-device = max7219(
-    serial,
-    cascaded=1,
-    block_orientation=90,
-    rotate=0
-)
+# ---------------- FUNCTION TO SEND DATA ----------------
+def send(register, data):
+    spi.xfer2([register, data])
 
-print("8x8 LED Matrix Started")
+# ---------------- MAX7219 INITIALIZATION ----------------
+send(0x09, 0x00)   # Decode mode OFF
+send(0x0A, 0x08)   # Brightness
+send(0x0B, 0x07)   # Scan limit: 8 rows
+send(0x0C, 0x01)   # Normal operation
+send(0x0F, 0x00)   # Display test OFF
 
-try:
-    while True:
-        with canvas(device) as draw:
-            draw.text((1, 0), "Hi", fill="white")
-        time.sleep(1)
+# ---------------- HEX PATTERN FOR LETTER "A" ----------------
+A = [
+    0x18,  # 00011000
+    0x24,  # 00100100
+    0x42,  # 01000010
+    0x7E,  # 01111110
+    0x42,  # 01000010
+    0x42,  # 01000010
+    0x42,  # 01000010
+    0x00   # 00000000 (empty row)
+]
 
-        with canvas(device) as draw:
-            draw.point((3, 3), fill="white")
-        time.sleep(1)
+# ---------------- DISPLAY THE LETTER ----------------
+for row in range(8):
+    send(row + 1, A[row])
 
-except KeyboardInterrupt:
-    print("Program stopped")
+# ---------------- OPTIONAL ANIMATION: FLASH EACH ROW ----------------
+while True:
+    for row in range(1, 9):
+        send(row, 0xFF)         # Turn on all LEDs in the row
+        time.sleep(0.2)
+        send(row, 0x00)         # Turn off the row
+    break                        # Run only once (remove break for infinite loop)
 
-
-
-#library Requirements
-
-sudo apt update
-sudo apt install python3-pip
-pip3 install luma.led_matrix
+# ---------------- CLEAR LAST ROW ----------------
+send(row, 0x00)
