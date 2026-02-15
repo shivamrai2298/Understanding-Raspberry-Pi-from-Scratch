@@ -1,3 +1,5 @@
+#for camera sensor using Pi
+
 sudo apt update
 sudo apt install python3-picamera2 -y
 
