@@ -1,5 +1,5 @@
 # ====================================================
-# Experiment Title:
+# Experiment Title :
 # Blinking an LED using Raspberry Pi and Python
 #
 #
