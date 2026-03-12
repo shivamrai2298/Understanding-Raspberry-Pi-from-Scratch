@@ -1,3 +1,5 @@
+#code for 8x8
+
 import spidev
 import time
 
